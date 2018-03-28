@@ -57,12 +57,15 @@ func executeCommand(cmdName string) int {
 			if strings.HasPrefix(err.Error(), "exit status ") {
 				code, err := strconv.Atoi(err.Error()[12:])
 				if err == nil {
+					fmt.Print("\n")
 					return code
 				}
 			}
+			fmt.Print("\n")
 			return 126
 		}
 	}
+	fmt.Print("\n")
 	return 0
 }
 
