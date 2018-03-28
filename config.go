@@ -17,6 +17,7 @@ var rawConfig map[string]interface{}
 var root string
 
 var config = make(map[string]*command)
+var manualConfig = false
 
 var shortExp = regexp.MustCompile(`^(\S+)\s*(.+|)$`)
 var multipleExp = regexp.MustCompile(`^\S+,\S+$`)
@@ -33,9 +34,13 @@ func writeConfigPart(cmd string, part interface{}) {
 
 	switch c := part.(type) {
 	case string:
-		config[cmd].cmd = []string{c}
+		part = map[interface{}]interface{}{"command": c}
 	case []string:
-		config[cmd].cmd = c
+		part = map[interface{}]interface{}{"command": c}
+	case []interface{}:
+		part = map[interface{}]interface{}{"command": c}
+	}
+	switch c := part.(type) {
 	case map[interface{}]interface{}:
 		l := 0
 		if c["description"] != nil {
@@ -61,8 +66,19 @@ func writeConfigPart(cmd string, part interface{}) {
 			switch x := c["command"].(type) {
 			case string:
 				config[cmd].cmd = []string{x}
-			case []string:
+			case []string: // Might never occur?!
 				config[cmd].cmd = x
+			case []interface{}:
+				config[cmd].cmd = make([]string, len(x))
+				for k, v := range x {
+					switch s := v.(type) {
+					case string:
+						config[cmd].cmd[k] = s
+					default:
+						fmt.Printf("%s\n", Bold(Brown("command must be a string or a string array ("+cmd+")")))
+						break
+					}
+				}
 			default:
 				fmt.Printf("%s\n", Bold(Brown("command must be a string or a string array ("+cmd+")")))
 			}
@@ -146,6 +162,7 @@ func getConfig(configFile string) {
 			fmt.Printf("%s\n", Red(Bold("The specified config file doesn't exist.")))
 			os.Exit(1)
 		}
+		manualConfig = true
 	}
 
 	if configFile == "" {
@@ -153,11 +170,21 @@ func getConfig(configFile string) {
 		os.Exit(1)
 	}
 
+	configFile, err := filepath.Abs(configFile)
+	if err != nil {
+		fmt.Printf("%s\n", Red(Bold(err.Error())))
+		os.Exit(1)
+	}
+	if manualConfig {
+		fmt.Printf("\n%s\n", Blue("[Using config file: ").Bold().String()+Bold(configFile).String()+Blue("]").Bold().String())
+	}
+
 	dat, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		fmt.Printf("%s\n", Red(Bold(err.Error())))
 		os.Exit(1)
 	}
+
 	err = yaml.Unmarshal(dat, &rawConfig)
 	if err != nil {
 		fmt.Printf("%s\n", Red(Bold(err.Error())))

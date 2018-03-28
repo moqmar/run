@@ -18,9 +18,15 @@ type command struct {
 }
 
 func executeCommand(cmdName string) int {
+	if !manualConfig {
+		fmt.Print("\n")
+	}
+
 	cmd := config[cmdName]
 	if len(cmd.description) > 0 {
-		fmt.Printf("%s\n", Bold(Blue("["+cmd.description+"]")))
+		fmt.Printf("%s\n", Blue("[").Bold().String()+Bold(cmdName).String()+" "+Blue(cmd.description).Bold().String()+Blue("]").Bold().String())
+	} else {
+		fmt.Printf("%s\n", Blue("[").Bold().String()+Bold(cmdName).String()+Blue("]").Bold().String())
 	}
 
 	env := make([]string, 0)

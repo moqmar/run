@@ -1,5 +1,4 @@
-test does some testing stuff: |
-  echo Hello World
-  exit 2
-test:
-  command: echo hi # Behaviour not specified!!!
+test does some testing stuff:
+- echo Hello World
+- exit 2
+- echo aha
