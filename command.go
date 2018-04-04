@@ -13,6 +13,8 @@ import (
 type command struct {
 	description string
 	usage       string
+	replace     string
+	before      string
 	cmd         []string
 	environment map[string]string
 }
@@ -42,15 +44,37 @@ func executeCommand(cmdName string) int {
 	for _, v := range getLocalEnvironment(cmdName) {
 		env = append(env, v)
 	}
+	if cmd.before != "" {
+		child := exec.Command("/bin/sh", append([]string{"-c", cmd.before, "--"}, args[:]...)...)
+		child.Stdin = os.Stdin
+		child.Stdout = os.Stdout
+		child.Stderr = os.Stderr
+		child.Env = env
+		child.Dir = root
+		err := child.Run()
+		if err != nil {
+			fmt.Printf("%s\n", Bold(Red("["+err.Error()+"]")))
+			fmt.Print("\n")
+			return 126
+		}
+	}
 	for _, c := range cmd.cmd {
 		fmt.Printf("%s\n", Bold(Blue("» "+wrap(c, 2, 0))))
-		a := append([]string{"-c", c, "--"}, args[:]...)
+		var a []string
+		if cmd.replace != "" {
+			a = append([]string{"-c", cmd.replace, "--"}, args[:]...)
+		} else {
+			a = append([]string{"-c", c, "--"}, args[:]...)
+		}
 		child := exec.Command("/bin/sh", a...)
 		child.Stdin = os.Stdin
 		child.Stdout = os.Stdout
 		child.Stderr = os.Stderr
 		child.Env = env
 		child.Dir = root
+		if cmd.replace != "" {
+			child.Stdin = strings.NewReader(c)
+		}
 		err := child.Run()
 		if err != nil {
 			fmt.Printf("%s\n", Bold(Red("["+err.Error()+"]")))

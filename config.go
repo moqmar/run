@@ -43,6 +43,42 @@ func writeConfigPart(cmd string, part interface{}) {
 	switch c := part.(type) {
 	case map[interface{}]interface{}:
 		l := 0
+		if c["replace"] != nil {
+			l++
+			switch x := c["replace"].(type) {
+			case string:
+				config[cmd].replace = x
+			default:
+				fmt.Printf("%s\n", Bold(Brown("replace must be a string ("+cmd+")")))
+			}
+		}
+		if c["remote"] != nil {
+			l++
+			switch x := c["remote"].(type) {
+			case string:
+				config[cmd].replace = `ssh ` + x + ` /bin/sh -s -- "$@"`
+			default:
+				fmt.Printf("%s\n", Bold(Brown("remote must be a string ("+cmd+")")))
+			}
+		}
+		if c["before"] != nil {
+			l++
+			switch x := c["before"].(type) {
+			case string:
+				config[cmd].before = x
+			default:
+				fmt.Printf("%s\n", Bold(Brown("identity must be a string ("+cmd+")")))
+			}
+		}
+		if c["identity"] != nil {
+			l++
+			switch x := c["identity"].(type) {
+			case string:
+				config[cmd].before = `ssh-agent ssh-add ` + x
+			default:
+				fmt.Printf("%s\n", Bold(Brown("identity must be a string ("+cmd+")")))
+			}
+		}
 		if c["description"] != nil {
 			l++
 			switch x := c["description"].(type) {
