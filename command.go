@@ -76,9 +76,9 @@ func executeCommand(cmdName string) int {
 		fmt.Printf("%s\n", Bold(Blue("» "+wrap(c, 2, 0))))
 		var a []string
 		if cmd.replace != "" {
-			a = append([]string{"-c", cmd.replace, "--"}, args[:]...)
+			a = append([]string{"-e", "-c", cmd.replace, "--"}, args[:]...)
 		} else {
-			a = append([]string{"-c", c, "--"}, args[:]...)
+			a = append([]string{"-e", "-c", c, "--"}, args[:]...)
 		}
 		child := exec.Command("/bin/sh", a...)
 		child.Stdin = os.Stdin
@@ -98,11 +98,11 @@ func executeCommand(cmdName string) int {
 					status = code
 					break
 				}
-				}
+			}
 			status = 126
 			break
-			}
 		}
+	}
 	fmt.Print("\n")
 	return status
 }

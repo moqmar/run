@@ -56,7 +56,7 @@ func writeConfigPart(cmd string, part interface{}) {
 			l++
 			switch x := c["remote"].(type) {
 			case string:
-				config[cmd].replace = `ssh ` + x + ` /bin/sh -s -- "$@"`
+				config[cmd].replace = `ssh ` + x + ` /bin/sh -e -s -- "$@"`
 			default:
 				fmt.Printf("%s\n", Bold(Brown("remote must be a string ("+cmd+")")))
 			}
@@ -74,7 +74,7 @@ func writeConfigPart(cmd string, part interface{}) {
 			l++
 			switch x := c["identity"].(type) {
 			case string:
-				config[cmd].before = `ssh-agent ssh-add ` + x
+				config[cmd].before = `ssh-add ` + x
 			default:
 				fmt.Printf("%s\n", Bold(Brown("identity must be a string ("+cmd+")")))
 			}
