@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -44,6 +45,18 @@ func executeCommand(cmdName string) int {
 	for _, v := range getLocalEnvironment(cmdName) {
 		env = append(env, v)
 	}
+	if strings.HasPrefix(cmd.replace, "ssh ") {
+		child := exec.Command("ssh-agent", "-s")
+		child.Env = env
+		child.Dir = root
+		if out, err := child.Output(); err == nil {
+			env = append(env, regexp.MustCompile(`SSH_(AUTH_SOCK=[^\s;]+|AGENT_PID=\d+)`).FindAllString(string(out), -1)...)
+		}
+		child = exec.Command("ssh-agent", "-k")
+		child.Env = env
+		child.Dir = root
+		defer child.Run()
+	}
 	if cmd.before != "" {
 		child := exec.Command("/bin/sh", append([]string{"-c", cmd.before, "--"}, args[:]...)...)
 		child.Stdin = os.Stdin
@@ -53,11 +66,12 @@ func executeCommand(cmdName string) int {
 		child.Dir = root
 		err := child.Run()
 		if err != nil {
-			fmt.Printf("%s\n", Bold(Red("["+err.Error()+"]")))
+			fmt.Printf("Error during `before` command: %s\n", Bold(Red(err.Error())))
 			fmt.Print("\n")
 			return 126
 		}
 	}
+	status := 0
 	for _, c := range cmd.cmd {
 		fmt.Printf("%s\n", Bold(Blue("» "+wrap(c, 2, 0))))
 		var a []string
@@ -81,16 +95,16 @@ func executeCommand(cmdName string) int {
 			if strings.HasPrefix(err.Error(), "exit status ") {
 				code, err := strconv.Atoi(err.Error()[12:])
 				if err == nil {
-					fmt.Print("\n")
-					return code
+					status = code
+					break
 				}
+				}
+			status = 126
+			break
 			}
-			fmt.Print("\n")
-			return 126
 		}
-	}
 	fmt.Print("\n")
-	return 0
+	return status
 }
 
 func getLocalEnvironment(cmd string) []string {
