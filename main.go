@@ -71,7 +71,7 @@ func help() {
 			Blue(` -a <cmd> [script]  `).String()+`add a new command`+"\n"+
 			Blue(` -d <cmd>           `).String()+`remove a command`+"\n"+
 			Blue(` -c <.run> [...]    `).String()+`use a custom .run file`+"\n")
-		fmt.Printf("%s\n", Bold(Green("run v1.0.0 - https://github.com/moqmar/run")))
+		fmt.Printf("%s\n", Bold(Green("run v0.3 - https://github.com/moqmar/run")))
 
 	}
 }

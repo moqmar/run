@@ -194,9 +194,17 @@ func getConfig(configFile string) {
 			}
 		}
 	} else {
-		if stat, err := os.Stat(configFile); os.IsNotExist(err) || stat.IsDir() {
+		stat, err := os.Stat(configFile)
+		if os.IsNotExist(err) {
 			fmt.Printf("%s\n", Red(Bold("The specified config file doesn't exist.")))
 			os.Exit(1)
+		}
+		if stat.IsDir() {
+			configFile = strings.TrimSuffix(configFile, "/") + "/.run"
+			if _, err := os.Stat(configFile); os.IsNotExist(err) {
+				fmt.Printf("%s\n", Red(Bold("The specified config file doesn't exist.")))
+				os.Exit(1)
+			}
 		}
 		manualConfig = true
 	}
