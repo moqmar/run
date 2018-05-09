@@ -79,6 +79,10 @@ func writeConfigPart(cmd string, part interface{}) {
 				fmt.Printf("%s\n", Bold(Brown("identity must be a string ("+cmd+")")))
 			}
 		}
+		if c["simultaneous"] != nil {
+			l++
+			config[cmd].simultaneous = true
+		}
 		if c["description"] != nil {
 			l++
 			switch x := c["description"].(type) {
@@ -95,6 +99,50 @@ func writeConfigPart(cmd string, part interface{}) {
 				config[cmd].usage = x
 			default:
 				fmt.Printf("%s\n", Bold(Brown("usage must be a string ("+cmd+")")))
+			}
+		}
+		if c["watch"] != nil {
+			l++
+			switch x := c["watch"].(type) {
+			case string:
+				config[cmd].watch = x
+			case []string: // Might never occur?!
+				config[cmd].watch = strings.Join(x, "\n")
+			case []interface{}:
+				config[cmd].watch = ""
+				for _, v := range x {
+					switch s := v.(type) {
+					case string:
+						config[cmd].watch += s
+					default:
+						fmt.Printf("%s\n", Bold(Brown("watch must be a string or a string array ("+cmd+")")))
+						break
+					}
+				}
+			default:
+				fmt.Printf("%s\n", Bold(Brown("watch must be a string or a string array ("+cmd+")")))
+			}
+		}
+		if c["watchIgnore"] != nil {
+			l++
+			switch x := c["watchIgnore"].(type) {
+			case string:
+				config[cmd].watchIgnore = x
+			case []string: // Might never occur?!
+				config[cmd].watchIgnore = strings.Join(x, "\n")
+			case []interface{}:
+				config[cmd].watchIgnore = ""
+				for _, v := range x {
+					switch s := v.(type) {
+					case string:
+						config[cmd].watchIgnore += s
+					default:
+						fmt.Printf("%s\n", Bold(Brown("watchIgnore must be a string or a string array ("+cmd+")")))
+						break
+					}
+				}
+			default:
+				fmt.Printf("%s\n", Bold(Brown("watchIgnore must be a string or a string array ("+cmd+")")))
 			}
 		}
 		if c["command"] != nil {

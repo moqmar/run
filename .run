@@ -2,3 +2,10 @@ test does some testing stuff:
 - echo Hello World
 - exit 2
 - echo aha
+
+test-sim-watch:
+  simultaneous: true
+  watch: .run
+  command:
+  - echo starting; for i in 0 1 2; do echo Hello World 1; sleep 1; done
+  - echo starting; for i in 0 1 2; do echo Hello World 2; sleep 1; done

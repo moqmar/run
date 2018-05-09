@@ -65,11 +65,11 @@ func help() {
 			Blue(` help -v | --help   `).String()+`additionally print help for the run command itself`+"\n"+
 			Blue(` help <cmd>         `).String()+`completely print a command and its help`+"\n"+
 			Blue(` help -c            `).String()+`completely print all available commands`+"\n"+
-			Blue(` env                `).String()+`print all environment variables`+"\n"+
-			Blue(` env edit           `).String()+`edit local environment variables`+"\n"+
-			Blue(` env reset          `).String()+`reset all local environment variables`+"\n"+
-			Blue(` -a <cmd> [script]  `).String()+`add a new command`+"\n"+
-			Blue(` -d <cmd>           `).String()+`remove a command`+"\n"+
+			//Blue(` env                `).String()+`print all environment variables`+"\n"+
+			//Blue(` env edit           `).String()+`edit local environment variables`+"\n"+
+			//Blue(` env reset          `).String()+`reset all local environment variables`+"\n"+
+			//Blue(` -a <cmd> [script]  `).String()+`add a new command`+"\n"+
+			//Blue(` -d <cmd>           `).String()+`remove a command`+"\n"+
 			Blue(` -c <.run> [...]    `).String()+`use a custom .run file`+"\n")
 		fmt.Printf("%s\n", Bold(Green("run v0.3 - https://github.com/moqmar/run")))
 
@@ -92,11 +92,11 @@ func run() {
 	if len(args) > 0 && config[args[0]] != nil {
 		cmdName := args[0]
 		args = args[1:]
-		os.Exit(executeCommand(cmdName))
+		executeCommand(cmdName)
 	} else if config["run"] != nil {
-		os.Exit(executeCommand("run"))
+		executeCommand("run")
 	} else {
 		help()
-		os.Exit(0)
 	}
+	os.Exit(0)
 }
