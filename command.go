@@ -35,11 +35,14 @@ var running map[*exec.Cmd]bool
 var runningCount = 0
 var runningLock = sync.Mutex{}
 var mayQuit = make(chan bool, 1) // event channel: an application has exited
+var lastStatus = 0
 var intentionalExit = false
 var mayContinue chan bool // event channel: wait for a file update when watching, even if the processes have exited
 
 func runCommand(cmd *command, env []string, osExit bool, killEverything bool) {
 	running = make(map[*exec.Cmd]bool, len(cmd.cmd))
+	mayQuit = make(chan bool, len(cmd.cmd))
+	lastStatus = 0
 	for _, c := range cmd.cmd {
 		fmt.Printf("%s\n", Bold(Blue("» "+wrap(c, 2, 0))))
 		var a []string
@@ -107,9 +110,11 @@ func runChild(child *exec.Cmd, simultaneous bool) int {
 		if strings.HasPrefix(err.Error(), "exit status ") {
 			code, err := strconv.Atoi(err.Error()[12:])
 			if err == nil {
+				lastStatus = code
 				return code
 			}
 		}
+		lastStatus = 126
 		return 126
 	}
 	return 0
@@ -207,6 +212,7 @@ func watch(cmd *command, env []string) {
 			<-mayContinue
 		}
 	}
+	os.Exit(lastStatus)
 }
 
 func executeCommand(cmdName string) {
