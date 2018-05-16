@@ -162,19 +162,6 @@ func watch(cmd *command, env []string) {
 	}
 	defer watcher.Close()
 
-	// Run stuff forever (until intentionalExit)
-	mayContinue = make(chan bool, 1)
-	go func() {
-		for {
-			runCommand(cmd, env, false, false)
-			if intentionalExit {
-				break
-			} else {
-				<-mayContinue
-			}
-		}
-	}()
-
 	// Listen for watcher events
 	go func() {
 		for {
@@ -208,6 +195,17 @@ func watch(cmd *command, env []string) {
 	})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Run stuff forever (until intentionalExit)
+	mayContinue = make(chan bool, 1)
+	for {
+		runCommand(cmd, env, false, false)
+		if intentionalExit {
+			break
+		} else {
+			<-mayContinue
+		}
 	}
 }
 
