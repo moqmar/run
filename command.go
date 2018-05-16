@@ -80,11 +80,11 @@ func runCommand(cmd *command, env []string, osExit bool, killEverything bool) {
 	if cmd.simultaneous {
 		killed := false
 		for {
-			<-mayQuit
+			err := <-mayQuit
 			runningCount--
 			if runningCount <= 0 {
 				return
-			} else if killEverything && !killed {
+			} else if err && killEverything && !killed {
 				killall()
 				killed = true
 			}
@@ -99,7 +99,7 @@ func runChild(child *exec.Cmd, simultaneous bool) int {
 	delete(running, child)
 	runningLock.Unlock()
 	if simultaneous {
-		mayQuit <- true
+		mayQuit <- err != nil
 	}
 
 	if err != nil {
@@ -144,6 +144,15 @@ func update() {
 	updatingLock.Lock()
 	updating = false
 	updatingLock.Unlock()
+}
+
+func signalProxy() {
+	// Listen for signals
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+	intentionalExit = true
+	killall()
 }
 
 func watch(cmd *command, env []string) {
@@ -200,13 +209,6 @@ func watch(cmd *command, env []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Listen for signals
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	<-sigs
-	intentionalExit = true
-	update()
 }
 
 func executeCommand(cmdName string) {
@@ -260,6 +262,8 @@ func executeCommand(cmdName string) {
 			os.Exit(126)
 		}
 	}
+
+	go signalProxy()
 	if cmd.watch != "" {
 		watch(cmd, env)
 	} else {
